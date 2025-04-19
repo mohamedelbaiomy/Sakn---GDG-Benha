@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "497207540886",
+    "project_id": "sakn-gdg-benha",
+    "storage_bucket": "sakn-gdg-benha.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:497207540886:android:0d50f0ef0f8614de8bd6b7",
+        "android_client_info": {
+          "package_name": "com.sakn.sakn"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDtpgGCdOGWpXKzR1B4urjyk7WVMp7zN-A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
