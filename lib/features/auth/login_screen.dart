@@ -1,7 +1,14 @@
+import 'package:easy_localization/easy_localization.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:restart_app/restart_app.dart';
 import 'package:sakn/core/constants/check_email.dart';
+import 'package:sakn/core/widgets/show_flushbar.dart';
+import 'package:sakn/features/auth/repo/auth_repo.dart';
 import 'package:sakn/features/auth/signup_screen.dart';
+import 'package:sakn/features/buttom_navigation_bar/buttom_vav_bar.dart';
 import 'forget_password.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -14,7 +21,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   bool password = true;
   bool loading = false;
-  bool docExists = false;
+  bool resendEmailVerification = false;
 
   FocusNode focusNode1 = FocusNode();
   FocusNode focusNode2 = FocusNode();
@@ -28,6 +35,57 @@ class _LoginScreenState extends State<LoginScreen> {
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
 
+  Future login() async {
+    if (formKey.currentState!.validate()) {
+      setState(() {
+        loading = true;
+      });
+      try {
+        await AuthRepo.singInWithEmailAndPassword(
+          email: emailController.text,
+          password: passwordController.text,
+        );
+        if (await AuthRepo.checkEmailVerified()) {
+          setState(() {
+            loading = false;
+          });
+          // page3
+          Get.offAll(const ButtomVavBar());
+        } else {
+          setState(() {
+            loading = false;
+            resendEmailVerification = true;
+          });
+          if (context.mounted) showError('please verify your email', context);
+        }
+      } on FirebaseAuthException catch (e) {
+        setState(() {
+          loading = false;
+        });
+        if (e.code == 'wrong-password') {
+          showError('password is incorrect', context);
+        } else if (e.code == 'user-not-found') {
+          showError('password or email is incorrect', context);
+        } else if (e.code == 'invalid-credential') {
+          showError('password or email is incorrect', context);
+        } else if (e.code == 'network-request-failed') {
+          showError('check you connection and try again', context);
+        } else {
+          showError(e.code, context);
+        }
+      } catch (e) {
+        setState(() {
+          loading = false;
+        });
+        if (context.mounted) showError(e.toString(), context);
+      } finally {
+        setState(() {
+          loading = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -38,17 +96,18 @@ class _LoginScreenState extends State<LoginScreen> {
         appBar: AppBar(
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           leading: Padding(
-            padding: EdgeInsets.only(left: 20, right: 20),
+            padding: const EdgeInsets.only(left: 20, right: 20),
             child: Row(
               spacing: 2,
               children: [
                 GestureDetector(
-                  onTap: () {},
+                  onTap: () {
+                    context.setLocale(const Locale('en'));
+                    Restart.restartApp();
+                  },
                   child: Container(
                     padding: const EdgeInsets.all(7),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).scaffoldBackgroundColor,
-                    ),
+                    decoration: const BoxDecoration(color: Colors.black),
                     child: Text(
                       "EN",
                       style: TextStyle(
@@ -59,16 +118,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 GestureDetector(
-                  onTap: () {},
+                  onTap: () {
+                    context.setLocale(const Locale('ar'));
+                    Restart.restartApp();
+                  },
                   child: Container(
                     padding: const EdgeInsets.all(7),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).scaffoldBackgroundColor,
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(10),
-                        bottomLeft: Radius.circular(10),
-                      ),
-                    ),
+                    decoration: const BoxDecoration(color: Colors.black),
                     child: Text(
                       "AR",
                       style: TextStyle(
@@ -105,7 +161,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             fontFamily: 'Poppins',
                             color: Theme.of(context).splashColor,
                           ),
-                        ),
+                        ).tr(),
                         Text(
                           "Welcome Back, please enter your details",
                           style: TextStyle(
@@ -113,9 +169,25 @@ class _LoginScreenState extends State<LoginScreen> {
                             fontFamily: 'Poppins',
                             color: Theme.of(context).shadowColor,
                           ),
-                        ),
+                        ).tr(),
                       ],
                     ),
+                    resendEmailVerification == false
+                        ? const Text("")
+                        : ElevatedButton(
+                          onPressed: () async {
+                            try {
+                              await AuthRepo.sendEmailVerification();
+                              setState(() {
+                                resendEmailVerification = false;
+                              });
+                              showSuccess("email verification sent", context);
+                            } catch (e) {
+                              showError(e.toString(), context);
+                            }
+                          },
+                          child: const Text("Resend email verification"),
+                        ),
                     TextFormField(
                       autovalidateMode: AutovalidateMode.onUserInteraction,
                       style: const TextStyle(fontFamily: 'Poppins'),
@@ -123,9 +195,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       focusNode: focusNode1,
                       validator: (value) {
                         if (value!.isEmpty) {
-                          return "please enter your email";
+                          return context.tr("please enter your email");
                         } else if (value.isValidEmail() == false) {
-                          return "invalid email";
+                          return context.tr("invalid email");
                         } else if (value.isValidEmail() == true) {
                           return null;
                         }
@@ -138,7 +210,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       controller: emailController,
                       keyboardType: TextInputType.emailAddress,
                       decoration: InputDecoration(
-                        hintText: "email",
+                        hintText: context.tr("email"),
                         errorStyle: const TextStyle(fontFamily: 'Poppins'),
                         hintStyle: TextStyle(
                           color: Theme.of(context).shadowColor,
@@ -212,7 +284,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: TextButton(
                         onPressed: () {
                           Get.to(
-                            () => ForgetPassword(isFromUpdatePassword: false),
+                            () => const ForgetPassword(
+                              isFromUpdatePassword: false,
+                            ),
                             transition: Transition.fadeIn,
                             duration: const Duration(milliseconds: 500),
                           );
@@ -227,18 +301,26 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     ElevatedButton(
-                      onPressed: loading ? null : () {},
+                      onPressed:
+                          loading
+                              ? null
+                              : () {
+                                login();
+                              },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Theme.of(context).primaryColor,
                         foregroundColor: Theme.of(context).primaryColorLight,
-                        minimumSize: Size(double.infinity, 50),
+                        minimumSize: const Size(double.infinity, 50),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(7),
                         ),
                       ),
                       child:
                           loading == true
-                              ? null
+                              ? LoadingAnimationWidget.progressiveDots(
+                                color: Colors.black,
+                                size: 20,
+                              )
                               : const Text(
                                 "Login",
                                 style: TextStyle(fontFamily: 'Poppins'),
@@ -277,19 +359,19 @@ class _LoginScreenState extends State<LoginScreen> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        minimumSize: Size(double.infinity, 50),
+                        minimumSize: const Size(double.infinity, 50),
                         //iconColor: Colors.transparent,
                         foregroundColor: Theme.of(context).secondaryHeaderColor,
                       ),
-                      child: Row(
+                      child: const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         spacing: 15,
                         children: [
-                          const Image(
+                          Image(
                             image: AssetImage("assets/login/google_2.png"),
                             height: 20,
                           ),
-                          const Text(
+                          Text(
                             "Continue with Google",
                             style: TextStyle(fontFamily: 'Poppins'),
                           ),

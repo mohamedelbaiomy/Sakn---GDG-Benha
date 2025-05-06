@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -7,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:sakn/core/constants/check_email.dart';
 import 'package:sakn/core/widgets/show_flushbar.dart';
+import 'package:sakn/features/auth/repo/auth_repo.dart';
 import 'login_screen.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -34,21 +34,21 @@ class _SignupScreenState extends State<SignupScreen> {
       });
 
       try {
-        await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        await AuthRepo.signUpWithEmailAndPassword(
           email: emailController.text,
           password: passwordController.text,
         );
 
-        await FirebaseAuth.instance.currentUser!.sendEmailVerification();
+        await AuthRepo.sendEmailVerification();
 
         await FirebaseFirestore.instance
             .collection('users')
-            .doc(FirebaseAuth.instance.currentUser!.uid)
+            .doc(AuthRepo.uid)
             .set({
               'name': nameController.text,
               'email': emailController.text,
               'password': passwordController.text,
-              'uid': FirebaseAuth.instance.currentUser!.uid,
+              'uid': AuthRepo.uid,
               'role': 'user',
               'signUpDate': DateFormat('d,MMMM,yyyy').format(DateTime.now()),
             });
@@ -271,7 +271,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Theme.of(context).primaryColor,
                       foregroundColor: Theme.of(context).primaryColorLight,
-                      minimumSize: Size(double.infinity, 50),
+                      minimumSize: const Size(double.infinity, 50),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(7),
                       ),
@@ -307,9 +307,9 @@ class _SignupScreenState extends State<SignupScreen> {
                               TapGestureRecognizer()
                                 ..onTap = () async {
                                   Get.offAll(
-                                    LoginScreen(),
+                                    const LoginScreen(),
                                     transition: Transition.fadeIn,
-                                    duration: Duration(milliseconds: 400),
+                                    duration: const Duration(milliseconds: 400),
                                   );
                                 },
                         ),
@@ -349,19 +349,19 @@ class _SignupScreenState extends State<SignupScreen> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      minimumSize: Size(double.infinity, 50),
+                      minimumSize: const Size(double.infinity, 50),
                       //iconColor: Colors.transparent,
                       foregroundColor: Theme.of(context).secondaryHeaderColor,
                     ),
-                    child: Row(
+                    child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       spacing: 15,
                       children: [
-                        const Image(
+                        Image(
                           image: AssetImage("assets/login/google_2.png"),
                           height: 20,
                         ),
-                        const Text(
+                        Text(
                           "Continue with Google",
                           style: TextStyle(fontFamily: 'Poppins'),
                         ),

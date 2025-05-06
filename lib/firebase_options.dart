@@ -4,6 +4,8 @@ import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
 
+import 'env.dart';
+
 /// Default [FirebaseOptions] for use with your Firebase apps.
 ///
 /// Example:
@@ -40,8 +42,8 @@ class DefaultFirebaseOptions {
     }
   }
 
-  static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyBNrzwWZUwk62mU8urrXJNjKJvSG2hg04A',
+  static FirebaseOptions web = FirebaseOptions(
+    apiKey: Env.apiKeyWeb,
     appId: '1:497207540886:web:9ad66e4979a082ab8bd6b7',
     messagingSenderId: '497207540886',
     projectId: 'sakn-gdg-benha',
@@ -50,16 +52,16 @@ class DefaultFirebaseOptions {
     measurementId: 'G-R1ZJ3H9TPL',
   );
 
-  static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDtpgGCdOGWpXKzR1B4urjyk7WVMp7zN-A',
+  static FirebaseOptions android = FirebaseOptions(
+    apiKey: Env.apiKeyAndroid,
     appId: '1:497207540886:android:0d50f0ef0f8614de8bd6b7',
     messagingSenderId: '497207540886',
     projectId: 'sakn-gdg-benha',
     storageBucket: 'sakn-gdg-benha.firebasestorage.app',
   );
 
-  static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyBuEuksKl7Eat1TI0YEB7fe-QepLaSRqpQ',
+  static FirebaseOptions ios = FirebaseOptions(
+    apiKey: Env.apiKeyIos,
     appId: '1:497207540886:ios:1d34c5f122f97bab8bd6b7',
     messagingSenderId: '497207540886',
     projectId: 'sakn-gdg-benha',
@@ -67,8 +69,8 @@ class DefaultFirebaseOptions {
     iosBundleId: 'com.sakn.sakn',
   );
 
-  static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyBuEuksKl7Eat1TI0YEB7fe-QepLaSRqpQ',
+  static FirebaseOptions macos = FirebaseOptions(
+    apiKey: Env.apiKeyMac,
     appId: '1:497207540886:ios:1d34c5f122f97bab8bd6b7',
     messagingSenderId: '497207540886',
     projectId: 'sakn-gdg-benha',
@@ -76,8 +78,8 @@ class DefaultFirebaseOptions {
     iosBundleId: 'com.sakn.sakn',
   );
 
-  static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyBNrzwWZUwk62mU8urrXJNjKJvSG2hg04A',
+  static FirebaseOptions windows = FirebaseOptions(
+    apiKey: Env.apiKeyWindows,
     appId: '1:497207540886:web:95ef80ba418fe0318bd6b7',
     messagingSenderId: '497207540886',
     projectId: 'sakn-gdg-benha',

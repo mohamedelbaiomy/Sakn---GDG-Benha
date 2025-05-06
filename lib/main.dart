@@ -1,9 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:sakn/features/auth/login_screen.dart';
+import 'package:sakn/features/buttom_navigation_bar/buttom_vav_bar.dart';
 import 'package:sakn/features/error_screen.dart';
 import 'firebase_options.dart';
 
@@ -16,6 +20,8 @@ void main() async {
     cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
   );
 
+  await EasyLocalization.ensureInitialized();
+
   ErrorWidget.builder =
       (FlutterErrorDetails flutterErrorDetails) => ErrorScreen();
 
@@ -24,7 +30,16 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
 
-  runApp(const MyApp());
+  runApp(
+    EasyLocalization(
+      supportedLocales: [Locale('en'), Locale('ar')],
+      path:
+          'assets/translations', // <-- change the path of the translation files
+      fallbackLocale: Locale('en'),
+      saveLocale: true,
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -32,25 +47,36 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
-      title: 'Sakn',
-      debugShowCheckedModeBanner: false,
-      home: LoginScreen(),
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return GetMaterialApp(
+            debugShowCheckedModeBanner: false,
+            home: Scaffold(
+              body: Center(
+                child: LoadingAnimationWidget.progressiveDots(
+                  color: Colors.black,
+                  size: 60,
+                ),
+              ),
+            ),
+          );
+        }
+
+        return GetMaterialApp(
+          localizationsDelegates: context.localizationDelegates,
+          supportedLocales: context.supportedLocales,
+          locale: context.locale,
+          title: 'Sakn',
+          debugShowCheckedModeBanner: false,
+          home: snapshot.data != null ? ButtomVavBar() : LoginScreen(),
+        );
+      },
     );
   }
 }
 
-// Firebase
+// Firebase Auth - authStateChanges Stream<User?> //
 
-// Authentication FirebaseAuth.instance - Firebase Firestore FirebaseFirestore.instance
-
-// CRUD - SQL
-
-// Table - Column & Rows - data
-
-// Nosql
-
-// Collection - documents - fields
-
-// read 50k - write 20k
-// Caching - Unlimited
+// StreamBuilder - FutureBuilder
